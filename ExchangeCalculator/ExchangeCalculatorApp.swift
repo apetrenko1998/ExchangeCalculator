@@ -6,12 +6,30 @@
 //
 
 import SwiftUI
+import Utilities
+import Networking
+import ExchangeFeature
 
 @main
 struct ExchangeCalculatorApp: App {
+    
+    private var diContainer: DependencyContainer
+    
+    init() {
+        self.diContainer = DependencyContainer()
+        diContainer.registerUtilitiesDependencies()
+        diContainer.registerNetworkingDependencies()
+        diContainer.registerExchangeFeatureDependencies()
+    }
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            CustomNavigationView(
+                appRouter: .init(
+                    navigationPath: .init(),
+                    resolver: diContainer
+                )
+            )
         }
     }
 }

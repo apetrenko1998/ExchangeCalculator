@@ -1,0 +1,11 @@
+//
+//  Release.xcconfig
+//  ExchangeCalculator
+//
+//  Created by Антон Петренко on 23/05/2026.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
+
+BASE_URL = api.dolarapp.release.dev

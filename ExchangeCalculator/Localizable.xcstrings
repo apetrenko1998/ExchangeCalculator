@@ -1,0 +1,30 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "chooseCurrency" : {
+      "comment" : "Title at the top of currency selector sheet",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose currency"
+          }
+        }
+      }
+    },
+    "exchangeCalculator" : {
+      "comment" : "Title displayed at the top of the exchange calculator screen",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exchange calculator"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.1"
+}
