@@ -22,7 +22,6 @@ public class ExchangePageRouter {
         self.resolver = resolver
     }
     
-    // here could be methods for navigation to other screens by pushing another router
 }
 
 extension ExchangePageRouter: Routable {
