@@ -6,9 +6,9 @@
 //
 
 public enum Currency: String, Equatable, Sendable {
-    case usdc = "USDc"
-    case mxn = "MXN"
-    case ars = "ARS"
-    case cop = "COP"
-    case brl = "BRL"
+    case usdc = "usdc"
+    case mxn = "mxn"
+    case ars = "ars"
+    case cop = "cop"
+    case brl = "brl"
 }

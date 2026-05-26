@@ -23,7 +23,7 @@ public final class ExchangeRatesRemoteDataSource: ExchangeRatesRemoteDataSourceI
     }
     
     public func fetchRates(for currencies: [Currency]) async throws -> [ExchangeRateResponse] {
-        let codes = currencies.map { $0.rawValue }.joined(separator: ",")
+        let codes = currencies.map { $0.rawValue.uppercased() }.joined(separator: ",")
         let exchangeRates = try await networkClient.perform(ExchangeRatesRequest(environment: environment, currencies: codes))
         return exchangeRates
     }

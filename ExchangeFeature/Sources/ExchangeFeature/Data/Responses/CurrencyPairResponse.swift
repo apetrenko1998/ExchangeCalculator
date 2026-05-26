@@ -28,14 +28,14 @@ public struct CurrencyPairResponse: Decodable, Equatable, Sendable {
             )
         }
 
-        guard let base = CurrencyResponse(rawValue: String(components[0])) else {
+        guard let base = CurrencyResponse(rawValue: String(components[0]).lowercased()) else {
             throw DecodingError.dataCorruptedError(
                 in: container,
                 debugDescription: "Unsupported base currency: \(components[0]) in \(rawBook)."
             )
         }
 
-        guard let quote = CurrencyResponse(rawValue: String(components[1])) else {
+        guard let quote = CurrencyResponse(rawValue: String(components[1]).lowercased()) else {
             throw DecodingError.dataCorruptedError(
                 in: container,
                 debugDescription: "Unsupported quote currency: \(components[1]) in \(rawBook)."
