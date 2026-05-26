@@ -14,12 +14,11 @@ public struct ExchangeRatesRequest: NetworkRequest {
     }
 
     public func create() throws -> URLRequest {
-        var components = URLComponents()
-        components.host = environment.baseURL.absoluteString
-        components.scheme = "https"
-        components.path = "/v1/tickers"
-        let currenciesItem = URLQueryItem(name: "currencies", value: currencies)
-        components.queryItems = [currenciesItem]
+        let base = environment.baseURL.appendingPathComponent("v1/tickers")
+        guard var components = URLComponents(url: base, resolvingAgainstBaseURL: false) else {
+            throw URLError(.badURL)
+        }
+        components.queryItems = [URLQueryItem(name: "currencies", value: currencies)]
         guard let url = components.url else { throw URLError(.badURL) }
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
