@@ -21,7 +21,7 @@ private struct LoaderOverlayModifier: ViewModifier {
                                 .tint(.white)
                                 .scaleEffect(1.4)
                         }
-                        .allowsHitTesting(true)
+                        .allowsHitTesting(false)
                         .transition(.opacity)
                 }
             }
