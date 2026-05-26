@@ -11,18 +11,16 @@ final class ExchangeViewModel {
     var quoteCurrency: Currency = .mxn {
         didSet {
             calculateExchangeRateLabel()
-            guard editingField == nil,
-                  let rate = exchangeRates.first(where: { $0.book.base == baseCurrency && $0.book.quote == quoteCurrency })
-            else { return }
-            quoteCurrencyAmount = currencyConversionUseCase.calculateQuoteAmount(
-                baseAmount: baseCurrencyAmount,
-                rate: rate
-            )
+            guard editingField == nil, let (rate, inverted) = currentRate() else { return }
+            quoteCurrencyAmount = inverted
+                ? currencyConversionUseCase.calculateBaseAmount(quoteAmount: baseCurrencyAmount, rate: rate)
+                : currencyConversionUseCase.calculateQuoteAmount(baseAmount: baseCurrencyAmount, rate: rate)
         }
     }
     
     var showCurrencySelector = false
     var isLoading: Bool = false
+    var isSwapped = false
     
     var exchangeRateLabel: String = ""
 
@@ -82,36 +80,33 @@ final class ExchangeViewModel {
     
     func didChangeBaseAmount(_ amount: Decimal) {
         guard editingField != .quote else { return }
-
         editingField = .base
         baseCurrencyAmount = amount
-
-        guard let currentExchangeRate = exchangeRates.first(where: { $0.book.base == baseCurrency && $0.book.quote == quoteCurrency }) else { return }
-        
-        quoteCurrencyAmount = currencyConversionUseCase.calculateQuoteAmount(
-            baseAmount: amount,
-            rate: currentExchangeRate
-        )
-
+        if let (rate, inverted) = currentRate() {
+            quoteCurrencyAmount = inverted
+                ? currencyConversionUseCase.calculateBaseAmount(quoteAmount: amount, rate: rate)
+                : currencyConversionUseCase.calculateQuoteAmount(baseAmount: amount, rate: rate)
+        }
         editingField = nil
     }
 
     func didChangeQuoteAmount(_ amount: Decimal) {
         guard editingField != .base else { return }
-
         editingField = .quote
         quoteCurrencyAmount = amount
-
-        guard let currentExchangeRate = exchangeRates.first(where: { $0.book.base == baseCurrency && $0.book.quote == quoteCurrency }) else { return }
-        
-        baseCurrencyAmount = currencyConversionUseCase.calculateBaseAmount(
-            quoteAmount: amount,
-            rate: currentExchangeRate
-        )
-
+        if let (rate, inverted) = currentRate() {
+            baseCurrencyAmount = inverted
+                ? currencyConversionUseCase.calculateQuoteAmount(baseAmount: amount, rate: rate)
+                : currencyConversionUseCase.calculateBaseAmount(quoteAmount: amount, rate: rate)
+        }
         editingField = nil
     }
     
+    func swap() {
+        isSwapped.toggle()
+        calculateExchangeRateLabel()
+    }
+
     func selectQuoteCurrency(_ presentation: CurrencyPresentation) {
         guard let currency = currencies.first(where: {
             currencyPresentationMapper.presentation(for: $0) == presentation
@@ -119,8 +114,24 @@ final class ExchangeViewModel {
         quoteCurrency = currency
     }
     
+    private func currentRate() -> (rate: ExchangeRate, inverted: Bool)? {
+        if let rate = exchangeRates.first(where: { $0.book.base == baseCurrency && $0.book.quote == quoteCurrency }) {
+            return (rate, false)
+        }
+        if let rate = exchangeRates.first(where: { $0.book.base == quoteCurrency && $0.book.quote == baseCurrency }) {
+            return (rate, true)
+        }
+        return nil
+    }
+
     private func calculateExchangeRateLabel() {
-        guard let currentExchangeRate = exchangeRates.first(where: { $0.book.base == baseCurrency && $0.book.quote == quoteCurrency }) else { return }
-        exchangeRateLabel = "1 USDc = \(currentExchangeRate.bid) \(quoteCurrency.rawValue.uppercased())"
+        guard let (rate, _) = currentRate(), rate.bid != 0 else { return }
+        let baseTitle = currencyPresentationMapper.presentation(for: baseCurrency).title
+        let quoteTitle = currencyPresentationMapper.presentation(for: quoteCurrency).title
+        if isSwapped {
+            exchangeRateLabel = "1 \(quoteTitle) = \(1 / rate.bid) \(baseTitle)"
+        } else {
+            exchangeRateLabel = "1 \(baseTitle) = \(rate.bid) \(quoteTitle)"
+        }
     }
 }

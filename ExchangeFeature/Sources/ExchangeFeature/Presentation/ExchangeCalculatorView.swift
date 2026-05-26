@@ -45,8 +45,6 @@ public struct ExchangeCalculatorView: View {
     @State private var focusedField: Field?
     @State private var baseAmountText = "0"
     @State private var quoteAmountText = "0"
-    @State private var isSwapped = false
-    @Namespace private var swapNamespace
 
     init(viewModel: ExchangeViewModel) {
         self._viewModel = State(initialValue: viewModel)
@@ -135,22 +133,18 @@ public struct ExchangeCalculatorView: View {
     private var currencySection: some View {
         ZStack {
             VStack(spacing: 16) {
-                if isSwapped {
+                if viewModel.isSwapped {
                     quoteCurrencyCard
-                        .matchedGeometryEffect(id: "quote", in: swapNamespace)
                     baseCurrencyCard
-                        .matchedGeometryEffect(id: "base", in: swapNamespace)
                 } else {
                     baseCurrencyCard
-                        .matchedGeometryEffect(id: "base", in: swapNamespace)
                     quoteCurrencyCard
-                        .matchedGeometryEffect(id: "quote", in: swapNamespace)
                 }
             }
             swapButton
                 .onTapGesture {
                     withAnimation(.spring()) {
-                        isSwapped.toggle()
+                        viewModel.swap()
                     }
                 }
         }
