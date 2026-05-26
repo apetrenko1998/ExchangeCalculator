@@ -11,6 +11,13 @@ final class ExchangeViewModel {
     var quoteCurrency: Currency = .mxn {
         didSet {
             calculateExchangeRateLabel()
+            guard editingField == nil,
+                  let rate = exchangeRates.first(where: { $0.book.base == baseCurrency && $0.book.quote == quoteCurrency })
+            else { return }
+            quoteCurrencyAmount = currencyConversionUseCase.calculateQuoteAmount(
+                baseAmount: baseCurrencyAmount,
+                rate: rate
+            )
         }
     }
     
