@@ -13,10 +13,10 @@ public struct ExchangeRateResponse: Decodable,Sendable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let askString = try container.decode(String.self, forKey: .ask)
         let bidString = try container.decode(String.self, forKey: .bid)
-        guard let askDecimal = Decimal(string: askString) else {
+        guard let askDecimal = Decimal(string: askString, locale: Locale(identifier: "en_US_POSIX")) else {
             throw DecodingError.dataCorruptedError(forKey: .ask, in: container, debugDescription: "Cannot convert '\(askString)' to Decimal")
         }
-        guard let bidDecimal = Decimal(string: bidString) else {
+        guard let bidDecimal = Decimal(string: bidString, locale: Locale(identifier: "en_US_POSIX")) else {
             throw DecodingError.dataCorruptedError(forKey: .bid, in: container, debugDescription: "Cannot convert '\(bidString)' to Decimal")
         }
         ask = askDecimal
