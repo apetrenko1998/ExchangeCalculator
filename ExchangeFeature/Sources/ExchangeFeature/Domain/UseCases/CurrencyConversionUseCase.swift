@@ -15,12 +15,18 @@ protocol CurrencyConversionUseCaseInterface {
 struct DefaultCurrencyConversionUseCase: CurrencyConversionUseCaseInterface {
 
     func calculateQuoteAmount(baseAmount: Decimal, rate: ExchangeRate) -> Decimal {
-        guard rate.bid != 0 else { return 0 }
-        return baseAmount * rate.bid
+        let mid = midRate(rate)
+        guard mid != 0 else { return 0 }
+        return baseAmount * mid
     }
 
     func calculateBaseAmount(quoteAmount: Decimal, rate: ExchangeRate) -> Decimal {
-        guard rate.ask != 0 else { return 0 }
-        return quoteAmount / rate.ask
+        let mid = midRate(rate)
+        guard mid != 0 else { return 0 }
+        return quoteAmount / mid
+    }
+
+    private func midRate(_ rate: ExchangeRate) -> Decimal {
+        (rate.bid + rate.ask) / 2
     }
 }
