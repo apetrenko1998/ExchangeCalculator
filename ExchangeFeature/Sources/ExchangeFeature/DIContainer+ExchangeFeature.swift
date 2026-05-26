@@ -19,35 +19,35 @@ public extension DependencyContainer {
         }
         self.register(scope: .transient) { resolver in
             let dataSource: CurrencyRemoteDataSourceInterface = CurrencyRemoteDataSource(
-                networkClient: resolver.resolveDependency(),
-                environment: resolver.resolveDependency()
+                networkClient: try resolver.resolveDependency(),
+                environment: try resolver.resolveDependency()
             )
             return dataSource
         }
         self.register(scope: .transient) { resolver in
             let dataSource: ExchangeRatesRemoteDataSourceInterface = ExchangeRatesRemoteDataSource(
-                networkClient: resolver.resolveDependency(),
-                environment: resolver.resolveDependency()
+                networkClient: try resolver.resolveDependency(),
+                environment: try resolver.resolveDependency()
             )
             return dataSource
         }
         self.register(scope: .transient) { resolver in
             let repository: CurrenciesRepositoryInterface = CurrenciesRepository(
-                currencyRemote: resolver.resolveDependency(),
-                currencyLocal: resolver.resolveDependency()
+                currencyRemote: try resolver.resolveDependency(),
+                currencyLocal: try resolver.resolveDependency()
             )
             return repository
         }
         self.register(scope: .transient) { resolver in
-            let repository: ExchangeRatesRepositoryInterface = ExchangeRatesRepository(ratesRemote: resolver.resolveDependency())
+            let repository: ExchangeRatesRepositoryInterface = ExchangeRatesRepository(ratesRemote: try resolver.resolveDependency())
             return repository
         }
         self.register(scope: .transient) { resolver in
-            let useCase: AvailableCurrenciesUseCaseInterface = AvailableCurrenciesUseCase(repository: resolver.resolveDependency())
+            let useCase: AvailableCurrenciesUseCaseInterface = AvailableCurrenciesUseCase(repository: try resolver.resolveDependency())
             return useCase
         }
         self.register(scope: .transient) { resolver in
-            let useCase: ExchangeRatesUseCaseInterface = ExchangeRatesUseCase(repository: resolver.resolveDependency())
+            let useCase: ExchangeRatesUseCaseInterface = ExchangeRatesUseCase(repository: try resolver.resolveDependency())
             return useCase
         }
         self.register(scope: .transient) { resolver in

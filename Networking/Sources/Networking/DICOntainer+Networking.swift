@@ -15,7 +15,7 @@ public extension DependencyContainer {
             return session
         }
         self.register(scope: .transient) { resolver in
-            let session: NetworkClientInterface = NetworkService(session: resolver.resolveDependency())
+            let session: NetworkClientInterface = NetworkService(session: try resolver.resolveDependency())
             return session
         }
     }

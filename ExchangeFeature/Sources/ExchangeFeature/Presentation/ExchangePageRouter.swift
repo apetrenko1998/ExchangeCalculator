@@ -26,13 +26,18 @@ public class ExchangePageRouter {
 
 extension ExchangePageRouter: Routable {
     public func makeView() -> AnyView {
-        let viewModel = ExchangeViewModel(
-            currenciesUseCase: resolver.resolveDependency(),
-            exchangeRatesUseCase: resolver.resolveDependency(),
-            currencyConversionUseCase: resolver.resolveDependency(),
-            currencyPresentationMapper: resolver.resolveDependency()
-        )
-        return AnyView(ExchangeCalculatorView(viewModel: viewModel))
+        do {
+            let viewModel = ExchangeViewModel(
+                currenciesUseCase: try resolver.resolveDependency(),
+                exchangeRatesUseCase: try resolver.resolveDependency(),
+                currencyConversionUseCase: try resolver.resolveDependency(),
+                currencyPresentationMapper: try resolver.resolveDependency()
+            )
+            return AnyView(ExchangeCalculatorView(viewModel: viewModel))
+        } catch {
+            assertionFailure("ExchangePageRouter: dependency resolution failed — \(error)")
+            return AnyView(EmptyView())
+        }
     }
 }
 

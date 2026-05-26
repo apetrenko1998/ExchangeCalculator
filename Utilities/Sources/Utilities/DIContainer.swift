@@ -5,14 +5,18 @@
 //  Created by Антон Петренко on 25/05/2026.
 //
 
-import SwiftUI
+import Foundation
+
+public enum DIError: Error {
+    case notRegistered(String)
+}
 
 public protocol Resolver {
-    func resolveDependency<T>() -> T
+    func resolveDependency<T>() throws -> T
 }
 
 public protocol DependencyRegisterer {
-    func register<T>(scope: DependencyContainer.Scope, factory: @escaping (Resolver) -> T)
+    func register<T>(scope: DependencyContainer.Scope, factory: @escaping (Resolver) throws -> T)
 }
 
 public final class DependencyContainer: Resolver, DependencyRegisterer {
@@ -24,38 +28,56 @@ public final class DependencyContainer: Resolver, DependencyRegisterer {
     }
 
     public init() {}
-    
-    private var transientObjects: [ObjectIdentifier: (Resolver) -> Any] = [:]
-    private var containerObjects: [ObjectIdentifier: Any] = [:]
-    
-    public func register<T>(scope: Scope, factory: @escaping (Resolver) -> T) {
-        let key = key(for: T.self)
+
+    private let lock = NSLock()
+    private var transientFactories: [ObjectIdentifier: (Resolver) throws -> Any] = [:]
+    private var containerFactories: [ObjectIdentifier: (Resolver) throws -> Any] = [:]
+    private var singletons: [ObjectIdentifier: Any] = [:]
+
+    public func register<T>(scope: Scope, factory: @escaping (Resolver) throws -> T) {
+        let key = ObjectIdentifier(T.self)
+        lock.lock()
+        defer { lock.unlock() }
         switch scope {
         case .transient:
-            transientObjects[key] = factory
+            transientFactories[key] = factory
+            containerFactories.removeValue(forKey: key)
         case .container:
-            transientObjects[key] = { [weak self] resolver in
-                if let instance = self?.containerObjects[key] {
-                    return instance
-                } else {
-                    let instance = factory(resolver)
-                    self?.containerObjects[key] = instance
-                    return instance
-                }
-            }
+            containerFactories[key] = factory
+            transientFactories.removeValue(forKey: key)
+            singletons.removeValue(forKey: key)
         }
     }
 
-    public func resolveDependency<T>() -> T {
-        guard let transientObject = transientObjects[key(for: T.self)] else {
-            fatalError("No transient object found for \(T.self)")
-        }
-        return transientObject(self) as! T
-    }
+    public func resolveDependency<T>() throws -> T {
+        let key = ObjectIdentifier(T.self)
 
-    // MARK: Supporting methods
-    
-    private func key<T>(for type: T.Type) -> ObjectIdentifier {
-        return ObjectIdentifier(T.self)
+        lock.lock()
+        let cached = singletons[key] as? T
+        lock.unlock()
+        if let cached { return cached }
+
+        lock.lock()
+        let containerFactory = containerFactories[key]
+        let transientFactory = transientFactories[key]
+        lock.unlock()
+
+        let isContainer = containerFactory != nil
+        guard let factory = containerFactory ?? transientFactory else {
+            throw DIError.notRegistered(String(describing: T.self))
+        }
+
+        let instance = try factory(self)
+        guard let typed = instance as? T else {
+            throw DIError.notRegistered(String(describing: T.self))
+        }
+
+        if isContainer {
+            lock.lock()
+            if singletons[key] == nil { singletons[key] = typed }
+            lock.unlock()
+        }
+
+        return typed
     }
 }
