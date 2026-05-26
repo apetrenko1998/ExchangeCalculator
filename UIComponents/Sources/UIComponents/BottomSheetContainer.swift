@@ -29,7 +29,6 @@ public struct BottomSheetConfiguration: Sendable {
 private struct BottomSheetContainer<Content: View>: View {
     @Binding var isPresented: Bool
     let configuration: BottomSheetConfiguration
-    let onDismiss: (() -> Void)?
     @ViewBuilder let content: () -> Content
 
     @State private var dragOffset: CGFloat = 0
@@ -82,7 +81,6 @@ private struct BottomSheetContainer<Content: View>: View {
         withAnimation(configuration.animation) {
             isPresented = false
         }
-        onDismiss?()
     }
 }
 
@@ -108,7 +106,6 @@ private struct BottomSheetModifier<SheetContent: View>: ViewModifier {
                         BottomSheetContainer(
                             isPresented: $isPresented,
                             configuration: configuration,
-                            onDismiss: onDismiss,
                             content: sheetContent
                         )
                         .transition(.move(edge: .bottom))
@@ -117,11 +114,13 @@ private struct BottomSheetModifier<SheetContent: View>: ViewModifier {
                 .ignoresSafeArea(edges: .bottom)
             }
             .animation(configuration.animation, value: isPresented)
+            .onChange(of: isPresented) { _, newValue in
+                if !newValue { onDismiss?() }
+            }
     }
 
     private func dismiss() {
         isPresented = false
-        onDismiss?()
     }
 }
 

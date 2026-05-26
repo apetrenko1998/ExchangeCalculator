@@ -14,7 +14,7 @@ public struct ExchangeRatesRequest: NetworkRequest {
     }
 
     public func create() throws -> URLRequest {
-        let base = environment.baseURL.appendingPathComponent("v1/tickers")
+        let base = try environment.baseURL.appendingPathComponent("v1/tickers")
         guard var components = URLComponents(url: base, resolvingAgainstBaseURL: false) else {
             throw URLError(.badURL)
         }

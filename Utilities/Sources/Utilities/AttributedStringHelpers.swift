@@ -3,7 +3,7 @@ import UIKit
 
 public struct AttributedStringHelper {
     
-    public static func makeLabelAttributedString(for stringKey: String, foregroundColor: UIColor = .black) -> AttributedString {
+    public static func makeLabelAttributedString(for stringKey: String, foregroundColor: UIColor = .label) -> AttributedString {
         let fontSize: CGFloat = 16
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.minimumLineHeight = 20

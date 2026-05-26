@@ -7,15 +7,13 @@
 
 import Foundation
 
-// @unchecked Sendable: associated Error values are value types in practice (DecodingError, URLError),
-// but the compiler cannot prove it via the existential.
-public enum NetworkServiceError: Error, @unchecked Sendable, LocalizedError {
+public enum NetworkServiceError: Error, Sendable, LocalizedError {
     case invalidResponse
     case unauthorized(Data?)
     case clientError(Int, Data?)
     case serverError(Int, Data?)
-    case decodingError(any Error)
-    case systemError(any Error)
+    case decodingError(DecodingError)
+    case systemError(URLError)
 
     public var errorDescription: String? {
         switch self {

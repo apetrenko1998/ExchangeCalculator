@@ -61,20 +61,18 @@ final class ExchangeViewModel {
         self.currencyPresentationMapper = currencyPresentationMapper
     }
     
-    nonisolated func fetchInitialData() async {
+    func fetchInitialData() async {
         do {
-            await MainActor.run { [weak self] in self?.isLoading = true }
+            isLoading = true
             let currencies = try await currenciesUseCase.fetch()
-            await MainActor.run { [weak self] in self?.currencies = currencies }
+            self.currencies = currencies
             let exchangeRates = try await exchangeRatesUseCase.fetch(for: currencies)
-            await MainActor.run { [weak self] in self?.exchangeRates = exchangeRates }
-            await MainActor.run { [weak self] in
-                self?.calculateExchangeRateLabel()
-                self?.isLoading = false
-            }
+            self.exchangeRates = exchangeRates
+            calculateExchangeRateLabel()
+            isLoading = false
         } catch {
             debugPrint("Error while fetching initial data: " + String(describing: error))
-            await MainActor.run { [weak self] in self?.isLoading = false }
+            isLoading = false
         }
     }
     

@@ -12,7 +12,7 @@ public struct AvailableCurrenciesRequest: NetworkRequest {
     }
 
     public func create() throws -> URLRequest {
-        let base = environment.baseURL.appendingPathComponent("v1/tickers-currencies")
+        let base = try environment.baseURL.appendingPathComponent("v1/tickers-currencies")
         guard let components = URLComponents(url: base, resolvingAgainstBaseURL: false),
               let url = components.url else { throw URLError(.badURL) }
         var request = URLRequest(url: url)

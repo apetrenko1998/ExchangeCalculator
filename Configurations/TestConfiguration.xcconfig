@@ -1,0 +1,4 @@
+// Test configuration — used by unit/integration test targets.
+// Never points to production; safe to commit.
+
+BASE_URL = api.dolarapp.test

@@ -15,30 +15,57 @@ public protocol NetworkClientInterface: Sendable {
 public struct NetworkService: NetworkClientInterface {
 
     private let session: SessionProvider
+    private let maxAttempts: Int
+    private let retryBaseDelay: UInt64
     private let logger = Logger(subsystem: "Networking", category: "NetworkService")
 
-    public init(session: SessionProvider) {
+    public init(session: SessionProvider, maxAttempts: Int = 3, retryBaseDelay: UInt64 = 1_000_000_000) {
         self.session = session
+        self.maxAttempts = maxAttempts
+        self.retryBaseDelay = retryBaseDelay
     }
 
     public func perform<R: NetworkRequest>(_ request: R) async throws -> R.ResponseDataType {
+        var lastError: NetworkServiceError = .invalidResponse
+        for attempt in 0..<maxAttempts {
+            if attempt > 0 {
+                let delay = retryBaseDelay * UInt64(1 << (attempt - 1))
+                try await Task.sleep(nanoseconds: delay)
+            }
+            do {
+                return try await attemptRequest(request)
+            } catch let error as NetworkServiceError {
+                lastError = error
+                guard case .serverError(let code, _) = error, (500..<600).contains(code) else {
+                    throw error
+                }
+                logger.warning("Server error \(code), retrying (attempt \(attempt + 1)/\(self.maxAttempts))")
+            }
+        }
+        throw lastError
+    }
+
+    private func attemptRequest<R: NetworkRequest>(_ request: R) async throws -> R.ResponseDataType {
         let urlRequest: URLRequest
         do {
             urlRequest = try request.create()
         } catch {
             logger.error("Failed to build URLRequest: \(error.localizedDescription)")
-            throw NetworkServiceError.systemError(error)
+            throw NetworkServiceError.systemError(URLError(.badURL))
         }
 
         let data: Data
         let response: URLResponse
         do {
             (data, response) = try await session.fetch(request: urlRequest)
+        } catch let urlError as URLError {
+            logger.error("Transport error: \(urlError.localizedDescription)")
+            throw NetworkServiceError.systemError(urlError)
         } catch let error as NetworkServiceError {
             throw error
         } catch {
             logger.error("Transport error: \(error.localizedDescription)")
-            throw NetworkServiceError.systemError(error)
+            throw NetworkServiceError.systemError(URLError(.unknown))
         }
 
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -52,12 +79,17 @@ public struct NetworkService: NetworkClientInterface {
 
         do {
             return try request.parse(data: data)
+        } catch let decodingError as DecodingError {
+            logResponse(urlRequest, data: data, statusCode: httpResponse.statusCode)
+            throw NetworkServiceError.decodingError(decodingError)
         } catch let error as NetworkServiceError {
             logResponse(urlRequest, data: data, statusCode: httpResponse.statusCode)
             throw error
         } catch {
             logResponse(urlRequest, data: data, statusCode: httpResponse.statusCode)
-            throw NetworkServiceError.decodingError(error)
+            throw NetworkServiceError.decodingError(
+                DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: error.localizedDescription))
+            )
         }
     }
 

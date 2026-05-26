@@ -14,9 +14,17 @@ struct CurrencySelectorView<T: SelectableItem>: View {
     @Binding var isPresented: Bool
     let onSelect: (T) -> Void
 
+    @State private var searchText = ""
+
+    private var filteredItems: [T] {
+        guard !searchText.isEmpty else { return items }
+        return items.filter { $0.title.localizedCaseInsensitiveContains(searchText) }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             header
+            searchBar
             list
         }
         .padding(.horizontal, 16)
@@ -40,16 +48,33 @@ struct CurrencySelectorView<T: SelectableItem>: View {
             .frame(width: 32, height: 32)
         }
         .padding(.top, 8)
-        .padding(.bottom, 16)
+        .padding(.bottom, 8)
+    }
+
+    private var searchBar: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+            TextField("Search", text: $searchText)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Colors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .padding(.bottom, 12)
     }
 
     private var list: some View {
-        VStack(spacing: 0) {
-            ForEach(items) { item in
-                row(for: item)
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                ForEach(filteredItems) { item in
+                    row(for: item)
+                }
             }
         }
-        .background(.white)
+        .background(Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 

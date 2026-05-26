@@ -31,7 +31,7 @@ private final class DecimalPadInputView: UIInputView {
     required init?(coder: NSCoder) { fatalError() }
 
     private func setup() {
-        backgroundColor = UIColor(red: 0.66, green: 0.69, blue: 0.73, alpha: 1)
+        backgroundColor = UIColor.systemGray3
         allowsSelfSizing = true
 
         let outerStack = UIStackView()
@@ -72,20 +72,20 @@ private final class DecimalPadInputView: UIInputView {
         button.layer.shadowRadius = 0
 
         if isDelete {
-            button.backgroundColor = UIColor(red: 0.66, green: 0.69, blue: 0.73, alpha: 1)
+            button.backgroundColor = UIColor.systemGray3
             let img = UIImage(systemName: "delete.left")?
                 .withConfiguration(UIImage.SymbolConfiguration(pointSize: 20, weight: .regular))
             button.setImage(img, for: .normal)
-            button.tintColor = .black
+            button.tintColor = UIColor.label
             button.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
         } else {
-            button.backgroundColor = .white
+            button.backgroundColor = UIColor.systemBackground
             button.contentVerticalAlignment = .center
             let title = NSMutableAttributedString(
                 string: symbol,
                 attributes: [
                     .font: Self.keyFont,
-                    .foregroundColor: UIColor.black
+                    .foregroundColor: UIColor.label
                 ]
             )
             if let sub = Self.subLabels[symbol] {
@@ -93,7 +93,7 @@ private final class DecimalPadInputView: UIInputView {
                     string: "\n" + sub,
                     attributes: [
                         .font: Self.subFont,
-                        .foregroundColor: UIColor.black,
+                        .foregroundColor: UIColor.label,
                         .kern: 2
                     ]
                 ))
@@ -185,18 +185,19 @@ struct DecimalTextField: UIViewRepresentable {
         }
 
         func handleKey(_ symbol: String) {
+            let current = parent.text
             if symbol == "." {
                 guard !hasDecimal else { return }
                 hasDecimal = true
-                let current = parent.text
                 parent.text = current.isEmpty ? "0." : current + "."
+            } else if hasDecimal {
+                let decimalPart = current.components(separatedBy: ".").last ?? ""
+                guard decimalPart.count < 2 else { return }
+                parent.text = current + symbol
             } else {
-                let current = parent.text
-                if current == "0" {
-                    parent.text = symbol
-                } else {
-                    parent.text = current + symbol
-                }
+                let digitCount = current.filter { $0.isNumber }.count
+                guard digitCount < 10 else { return }
+                parent.text = current == "0" ? symbol : current + symbol
             }
         }
 
@@ -227,7 +228,16 @@ struct DecimalTextField: UIViewRepresentable {
         }
 
         func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-            false
+            if string.isEmpty {
+                handleDelete()
+                return false
+            }
+            // Handle hardware keyboard, paste, dictation: filter to digits and decimal only
+            let valid = string.filter { $0.isNumber || $0 == "." }
+            for char in valid {
+                handleKey(String(char))
+            }
+            return false
         }
     }
 }

@@ -12,10 +12,12 @@ import ExchangeFeature
 
 @MainActor
 final class AppRouter: ObservableObject {
-    
+
     @Published var navigationPath: NavigationPath
     private let resolver: Resolver
-    
+
+    private(set) lazy var initialView: AnyView = resolveInitialRouter().makeView()
+
     init(
         navigationPath: NavigationPath = NavigationPath(),
         resolver: Resolver
@@ -23,9 +25,9 @@ final class AppRouter: ObservableObject {
         self.navigationPath = navigationPath
         self.resolver = resolver
     }
-    
-    func resolveInitialRouter() -> any Routable {
-        return ExchangePageRouter(rootCoordinator: self, resolver: resolver)
+
+    private func resolveInitialRouter() -> any Routable {
+        ExchangePageRouter(rootCoordinator: self, resolver: resolver)
     }
 }
 

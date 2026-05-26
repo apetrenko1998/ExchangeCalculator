@@ -14,7 +14,7 @@ struct CustomNavigationView: View {
     
     var body: some View {
         NavigationStack(path: $appRouter.navigationPath) {
-            appRouter.resolveInitialRouter().makeView()
+            appRouter.initialView
                 .navigationDestination(for: AnyRoutable.self) { router in
                     router.makeView()
                 }

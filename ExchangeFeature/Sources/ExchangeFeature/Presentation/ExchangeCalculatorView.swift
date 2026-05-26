@@ -165,7 +165,7 @@ public struct ExchangeCalculatorView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 23)
-        .background(.white)
+        .background(Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
@@ -191,7 +191,7 @@ public struct ExchangeCalculatorView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 23)
-        .background(.white)
+        .background(Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 

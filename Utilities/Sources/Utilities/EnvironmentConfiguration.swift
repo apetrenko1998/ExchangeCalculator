@@ -1,17 +1,23 @@
 import Foundation
 
+public enum EnvironmentError: Error {
+    case missingBaseURL
+}
+
 public protocol EnvironmentInterface: Sendable {
-    var baseURL: URL { get }
+    var baseURL: URL { get throws }
 }
 
 struct EnvironmentConfiguration: EnvironmentInterface {
     var baseURL: URL {
-        guard
-            let host = Bundle.main.object(forInfoDictionaryKey: "BASE_URL") as? String,
-            let url = URL(string: "https://\(host)")
-        else {
-            fatalError("BASE_URL missing or malformed in Info.plist")
+        get throws {
+            guard
+                let host = Bundle.main.object(forInfoDictionaryKey: "BASE_URL") as? String,
+                let url = URL(string: "https://\(host)")
+            else {
+                throw EnvironmentError.missingBaseURL
+            }
+            return url
         }
-        return url
     }
 }
