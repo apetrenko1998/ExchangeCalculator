@@ -17,27 +17,21 @@ final class ExchangeViewModel {
     var showCurrencySelector = false
     var isLoading: Bool = false
     
-    @ObservationIgnored
     var exchangeRateLabel: String = ""
-    
-    @ObservationIgnored
+
     var baseCurrencyPresentation: CurrencyPresentation {
         currencyPresentationMapper.presentation(for: baseCurrency)
     }
 
-    @ObservationIgnored
     var quoteCurrencyPresentation: CurrencyPresentation {
         currencyPresentationMapper.presentation(for: quoteCurrency)
     }
 
-    @ObservationIgnored
     var currencyPresentations: [CurrencyPresentation] {
         currencies.map { currencyPresentationMapper.presentation(for: $0) }
     }
-    
-    @ObservationIgnored
+
     private(set) var currencies: [Currency] = []
-    @ObservationIgnored
     private(set) var exchangeRates: [ExchangeRate] = []
     @ObservationIgnored
     private var editingField: Field?
